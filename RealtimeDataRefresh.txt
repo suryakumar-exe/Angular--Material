@@ -1,0 +1,66 @@
+// Real time data refersh by using Subject (Rxjs)
+import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, Subject, tap } from 'rxjs';
+
+export interface Turbine {
+  id?:string// Define interface for type safety
+  AST: number;
+  ProjectName: string;
+  NoofTurbines: number;
+  turbinetypes: string;
+  Country: string;
+  Owner: string;
+  Creationdate: string;
+}
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  private _refreshData$ = new Subject<void>();
+  selected: any = [];
+  editUser: any;
+  rowSelected: any = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this._refreshData$.subscribe(() => {
+      console.log("ISide subscribe");
+      this.fetchData();
+    });
+    this.fetchData();
+  }
+
+  save() {
+    this.postData();
+  }
+
+  postData() {
+    const httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
+
+    return this.http.post<Turbine>('https://63a45746821953d4f2b19206.mockapi.io/turbine', {
+      AST: 131,
+      ProjectName: "Delta 6X",
+      NoofTurbines: 4,
+      turbinetypes: "6X",
+      Country: "India",
+      Owner: "Mahi",
+      Creationdate: "12/12/2020"
+    }, httpOptions)
+      .pipe(
+        tap(() => {
+          this._refreshData$.next();
+        })
+      ).subscribe();
+  }
+
+  fetchData() {
+    this.http.get<Turbine[]>('https://63a45746821953d4f2b19206.mockapi.io/turbine').subscribe((data:Turbine[])=>this.selected = data);
+  }
+}
